@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AddonPackager": {
+      "commandName": "Project",
+      "commandLineArgs": "--apiKey {PAT}\r\n--configFile ../../../../../test-config.json"
+    }
+  }
+}
