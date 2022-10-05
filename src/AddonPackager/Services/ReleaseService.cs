@@ -28,13 +28,19 @@ public class ReleaseService : IReleaseService
         var mirrorReleases = await _gitHubClient.Repository.Release.GetAll(configuration.MirrorOwner, configuration.MirrorRepositoryName).ConfigureAwait(false);
         var missingReleases = sourceReleases.Where(x => !mirrorReleases.Any(y => y.Name.Equals(x.Name)) && !configuration.SkipReleases.Any(y => y.Equals(x.Name))).ToList();
 
-        var names = sourceReleases.Select(x => x.Name);
-        var namesJson = JsonSerializer.Serialize(names, AddonPackagerConstants.SerializerOptions);
-
         if (missingReleases.Any())
         {
+            var workRootDirectory = Path.Combine("_work", configuration.SourceOwner, configuration.SourceRepositoryName);
+
             foreach (var missingRelease in missingReleases)
             {
+                var releaseRootDirectory = Path.Combine(workRootDirectory, missingRelease.Name, Guid.NewGuid().ToString());
+
+                if (!Directory.Exists(releaseRootDirectory))
+                {
+                    Directory.CreateDirectory(releaseRootDirectory);
+                }
+
                 using (var httpClient = this._httpClientFactory.CreateClient())
                 {
                     var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, missingRelease.ZipballUrl);
@@ -46,23 +52,17 @@ public class ReleaseService : IReleaseService
 
                     var response = await httpClient.SendAsync(httpRequestMessage);
 
-                    var downloadPath = Path.Combine("_work", configuration.SourceOwner, configuration.SourceRepositoryName, "download");
-
-                    if (!Directory.Exists(downloadPath))
-                    {
-                        Directory.CreateDirectory(downloadPath);
-                    }
-
-                    var sourceZipballFileName = Path.Combine("_work", configuration.SourceOwner, configuration.SourceRepositoryName, "download", $"{missingRelease.Name}.zip");
+                    var sourceZipballName = $"source.zip";
+                    var sourceZipballFileName = Path.Combine(releaseRootDirectory, sourceZipballName);
 
                     using (var fileStream = new FileStream(sourceZipballFileName, FileMode.CreateNew))
                     {
                         await response.Content.CopyToAsync(fileStream).ConfigureAwait(false);
                     }
 
-                    var sourcePath = Path.Combine("_work", configuration.SourceOwner, configuration.SourceRepositoryName, "src");
+                    var sourceRootDirectory = Path.Combine(releaseRootDirectory, "source");
 
-                    ZipFile.ExtractToDirectory(sourceZipballFileName, sourcePath);
+                    ZipFile.ExtractToDirectory(sourceZipballFileName, sourceRootDirectory);
 
                     var releaseRepoMainBranch = await _gitHubClient.Repository.Branch.Get(configuration.MirrorOwner, configuration.MirrorRepositoryName, "main");
 
@@ -88,9 +88,7 @@ public class ReleaseService : IReleaseService
                     });
 
                     var tree = await _gitHubClient.Git.Tree.Create(configuration.MirrorOwner, configuration.MirrorRepositoryName, nt);
-
                     var commit = await _gitHubClient.Git.Commit.Create(configuration.MirrorOwner, configuration.MirrorRepositoryName, new NewCommit("a", tree.Sha, new List<string>() { releaseRepoMainBranch.Commit.Sha }));
-
                     var update = await _gitHubClient.Git.Reference.Update(configuration.MirrorOwner, configuration.MirrorRepositoryName, "refs/heads/main", new ReferenceUpdate(commit.Sha));
 
                     var tag = await _gitHubClient.Git.Tag.Create(configuration.MirrorOwner, configuration.MirrorRepositoryName, new NewTag
@@ -113,33 +111,33 @@ public class ReleaseService : IReleaseService
                         TargetCommitish = commit.Sha
                     });
 
+                    var mirrorRootDirectory = Path.Combine(releaseRootDirectory, "mirror");
+
+                    if (!Directory.Exists(mirrorRootDirectory))
+                    {
+                        Directory.CreateDirectory(mirrorRootDirectory);
+                    }
+
                     foreach (var variant in configuration.Variants)
                     {
-                        var releasePath = Path.Combine("_work", configuration.SourceOwner, configuration.SourceRepositoryName, "release");
-
                         var variantReleaseName = $"{variant.Name}-{variant.Flavor}-{missingRelease.Name}";
                         var variantZipballName = $"{variantReleaseName}.zip";
-                        var variantZipballFileName = Path.Combine(releasePath, variantZipballName);
+                        var variantZipballFileName = Path.Combine(mirrorRootDirectory, variantZipballName);
 
-                        var sourceRoot = Directory.GetDirectories(sourcePath).First();
+                        var variantSourcePath = Path.Combine(sourceRootDirectory, variantReleaseName);
 
-                        if (!Directory.Exists(releasePath))
-                        {
-                            Directory.CreateDirectory(releasePath);
-                        }
+                        CopyDirectory(Directory.GetDirectories(sourceRootDirectory).First(), Path.Combine(variantSourcePath, variant.Name));
 
-                        var variantSourcePath = Path.Combine(releasePath, variantReleaseName, variant.Name);
+                        CopyDirectory("../../../../../libs-src", Path.Combine(variantSourcePath, variant.Name, "libs"));
 
-                        CopyDirectory(sourceRoot, variantSourcePath);
-
-                        CopyDirectory("../../../../../libs-src", Path.Combine(variantSourcePath, "libs"));
-
-                        ZipFile.CreateFromDirectory(Path.Combine(releasePath, variantReleaseName), variantZipballFileName);
+                        ZipFile.CreateFromDirectory(variantSourcePath, variantZipballFileName);
 
                         await _gitHubClient.Repository.Release.UploadAsset(mirrorRelease, new ReleaseAssetUpload(variantZipballName, "application/zip", File.OpenRead(variantZipballFileName), TimeSpan.FromMinutes(5)));
 
-                        var metadata = new Dictionary<string, string>();
-                        metadata.Add("flavor", variant.Flavor);
+                        var metadata = new Dictionary<string, string>
+                        {
+                            { "flavor", variant.Flavor }
+                        };
 
                         wowUpReleases.Releases.Add(new WowUpRelease
                         {
@@ -151,7 +149,7 @@ public class ReleaseService : IReleaseService
                         });
                     }
 
-                    var wowUpReleaseFileName = Path.Combine("_work", configuration.SourceOwner, configuration.SourceRepositoryName, "release", "release.json");
+                    var wowUpReleaseFileName = Path.Combine(mirrorRootDirectory, "release.json");
 
                     using (var fileStream = new FileStream(wowUpReleaseFileName, FileMode.CreateNew))
                     {

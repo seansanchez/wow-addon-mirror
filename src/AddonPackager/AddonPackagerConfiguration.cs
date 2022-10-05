@@ -14,6 +14,6 @@ namespace AddonPackager
 
         public IEnumerable<Variant> Variants { get; set; }
 
-        public IList<string> SkipReleases { get; set; } = new List<string>();
+        public IEnumerable<string> SkipReleases { get; set; } = new List<string>();
     }
 }
