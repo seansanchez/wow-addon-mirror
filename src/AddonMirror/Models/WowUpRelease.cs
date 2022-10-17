@@ -1,4 +1,6 @@
-﻿namespace AddonMirrorer.Models;
+﻿using System.Collections.Generic;
+
+namespace AddonMirror.Models;
 
 public class WowUpRelease
 {

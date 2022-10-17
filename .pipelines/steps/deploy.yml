@@ -44,4 +44,4 @@ steps:
       appType: webAppLinux
       appName: '$(functionsResourceName)'
       resourceGroupName: '${{ parameters.armDeploymentResourceGroup }}'
-      package: $(Pipeline.Workspace)/drop/AddonMirrorer.Functions.zip
+      package: $(Pipeline.Workspace)/drop/AddonMirror.Functions.zip

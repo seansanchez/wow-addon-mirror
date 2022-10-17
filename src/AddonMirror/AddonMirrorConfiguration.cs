@@ -1,8 +1,9 @@
-﻿using AddonMirrorer.Models;
+﻿using System.Collections.Generic;
+using AddonMirror.Models;
 
-namespace AddonMirrorer;
+namespace AddonMirror;
 
-public class AddonMirrorerConfiguration
+public class AddonMirrorConfiguration
 {
     public string SourceOwner { get; set; }
 

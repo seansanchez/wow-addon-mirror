@@ -1,1 +1,1 @@
-# wow-addon-mirrorer
+# wow-addon-mirror

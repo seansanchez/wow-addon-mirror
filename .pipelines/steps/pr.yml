@@ -47,6 +47,6 @@ steps:
 
   #- task: ResharperCli@2
   #  inputs:
-  #    solutionOrProjectPath: 'AddonMirrorer.sln'
+  #    solutionOrProjectPath: 'AddonMirror.sln'
   #    failBuildLevelSelector: 'Error'
   #    additionalArguments: '--no-build'

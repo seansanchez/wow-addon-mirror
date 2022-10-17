@@ -1,9 +1,11 @@
-﻿using AddonMirrorer.Extensions;
-using AddonMirrorer.Functions;
+﻿using AddonMirror.Extensions;
+using AddonMirror.Functions;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 
+#pragma warning disable SA1516 // Elements should be separated by blank line
 [assembly: FunctionsStartup(typeof(Startup))]
-namespace AddonMirrorer.Functions;
+namespace AddonMirror.Functions;
+#pragma warning restore SA1516 // Elements should be separated by blank line
 
 /// <inheritdoc/>
 public class Startup : FunctionsStartup
@@ -20,4 +22,3 @@ public class Startup : FunctionsStartup
         builder.ConfigurationBuilder.Configure(context.ApplicationRootPath, context.EnvironmentName);
     }
 }
-

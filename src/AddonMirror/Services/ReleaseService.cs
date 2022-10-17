@@ -1,12 +1,18 @@
-﻿using System.IO.Compression;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using AddonMirrorer.Models;
+using System.Threading.Tasks;
+using AddonMirror.Models;
 using Octokit;
 using FileMode = System.IO.FileMode;
 
-namespace AddonMirrorer.Services;
+namespace AddonMirror.Services;
 
 public class ReleaseService : IReleaseService
 {
@@ -22,14 +28,14 @@ public class ReleaseService : IReleaseService
     }
 
     public async Task UpdateMirrorAsync(
-        AddonMirrorerConfiguration configuration)
+        AddonMirrorConfiguration configuration)
     {
         var sourceReleases = await _gitHubClient.Repository.Release.GetAll(configuration.SourceOwner, configuration.SourceRepositoryName).ConfigureAwait(false);
         var mirrorReleases = await _gitHubClient.Repository.Release.GetAll(configuration.MirrorOwner, configuration.MirrorRepositoryName).ConfigureAwait(false);
         var missingReleases = sourceReleases.Where(x => !mirrorReleases.Any(y => y.Name.Equals(x.Name)) && !configuration.SkipReleases.Any(y => y.Equals(x.Name))).ToList();
 
         var names = missingReleases.Select(x => x.Name);
-        var namesJson = JsonSerializer.Serialize(names, AddonMirrorerConstants.SerializerOptions);
+        var namesJson = JsonSerializer.Serialize(names, AddonMirrorConstants.SerializerOptions);
 
         if (missingReleases.Any())
         {
@@ -70,8 +76,10 @@ public class ReleaseService : IReleaseService
                     var releaseRepoMainBranch = await _gitHubClient.Repository.Branch.Get(configuration.MirrorOwner, configuration.MirrorRepositoryName, "main");
 
                     // https://stackoverflow.com/questions/11801983/how-to-create-a-commit-and-push-into-repo-with-github-api-v3/63461333#63461333
-                    var blob = await _gitHubClient.Git.Blob.Create(configuration.MirrorOwner, configuration.MirrorRepositoryName,
-                        new NewBlob()
+                    var blob = await _gitHubClient.Git.Blob.Create(
+                        configuration.MirrorOwner,
+                        configuration.MirrorRepositoryName,
+                        new NewBlob
                         {
                             Content = "Howdy",
                             Encoding = EncodingType.Utf8
@@ -157,7 +165,7 @@ public class ReleaseService : IReleaseService
 
                     using (var fileStream = new FileStream(wowUpReleaseFileName, FileMode.CreateNew))
                     {
-                        var content = new UTF8Encoding(true).GetBytes(JsonSerializer.Serialize(wowUpReleases, AddonMirrorerConstants.SerializerOptions));
+                        var content = new UTF8Encoding(true).GetBytes(JsonSerializer.Serialize(wowUpReleases, AddonMirrorConstants.SerializerOptions));
                         fileStream.Write(content, 0, content.Length);
                     }
 

@@ -1,7 +1,9 @@
-﻿using Azure.Identity;
+﻿using System;
+using System.IO;
+using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 
-namespace AddonMirrorer.Extensions;
+namespace AddonMirror.Extensions;
 
 /// <summary>
 ///     Provides extension methods for <see cref="IConfigurationBuilder"/>.
@@ -32,11 +34,11 @@ public static class ConfigurationBuilderExtensions
     {
         source.ShouldNotBeNull(nameof(source));
 
-        var keyVaultUri = Environment.GetEnvironmentVariable(AddonMirrorerConstants.EnvironmentSettings.KeyVaultUri);
+        var keyVaultUri = Environment.GetEnvironmentVariable(AddonMirrorConstants.EnvironmentSettings.KeyVaultUri);
 
         if (!string.IsNullOrWhiteSpace(keyVaultUri))
         {
-            _ = bool.TryParse(Environment.GetEnvironmentVariable(AddonMirrorerConstants.EnvironmentSettings.UseKeyVaultClientCertificateCredential), out var useKeyVaultClientCertificateCredential);
+            _ = bool.TryParse(Environment.GetEnvironmentVariable(AddonMirrorConstants.EnvironmentSettings.UseKeyVaultClientCertificateCredential), out var useKeyVaultClientCertificateCredential);
 
             if (useKeyVaultClientCertificateCredential)
             {

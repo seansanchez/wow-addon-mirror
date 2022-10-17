@@ -22,7 +22,7 @@ stages:
         - template: 'steps/pr.yml'
           parameters:
             configuration: Debug
-            solutionPath: AddonMirrorer.sln
+            solutionPath: AddonMirror.sln
 
 - stage: CI_Build
   displayName: CI Build
@@ -34,7 +34,7 @@ stages:
         - template: 'steps/ci.yml'
           parameters:
             configuration: 'Release'
-            projects: [ 'AddonMirrorer.Functions' ]
+            projects: [ 'AddonMirror.Functions' ]
 
 - stage: Release_PPE_SCUS
   displayName: '[PPE] SCUS'
@@ -44,7 +44,7 @@ stages:
 
     - deployment: Release
       displayName: 'Regional'
-      environment: addonmirrrorer-ppe-scus
+      environment: addonmirrror-ppe-scus
       strategy:
         runOnce:
           deploy:
@@ -52,6 +52,6 @@ stages:
               - template: 'steps/deploy.yml'
                 parameters:
                   armDeploymentSubscription: 'VSE-150'
-                  armDeploymentResourceGroup: 'addonmirrorer-ppe-scus'
+                  armDeploymentResourceGroup: 'addonmirror-ppe-scus'
                   armDeploymentLocation: 'SouthCentralUS'
                   configurationName: 'ppe-scus'

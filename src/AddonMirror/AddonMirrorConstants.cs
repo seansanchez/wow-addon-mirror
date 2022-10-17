@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 
-namespace AddonMirrorer;
+namespace AddonMirror;
 
-public static class AddonMirrorerConstants
+public static class AddonMirrorConstants
 {
     public static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
     {

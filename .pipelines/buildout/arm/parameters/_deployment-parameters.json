@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "resourceName": {
-      "value": "addonmirrorer-@@Environment@@-@@LocationCode@@"
+      "value": "addonmirror-@@Environment@@-@@LocationCode@@"
     },
     "environment": {
       "value": "@@Environment@@"

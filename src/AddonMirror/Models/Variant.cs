@@ -1,4 +1,4 @@
-﻿namespace AddonMirrorer.Models;
+﻿namespace AddonMirror.Models;
 
 public class Variant
 {

@@ -1,4 +1,6 @@
-﻿namespace AddonMirrorer.Extensions;
+﻿using System;
+
+namespace AddonMirror.Extensions;
 
 /// <summary>
 ///     Provides extension methods for <see cref="string"/>.
