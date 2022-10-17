@@ -15,11 +15,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".pipelines", ".pipelines", 
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "buildout", "buildout", "{95475768-3688-4624-8506-57C66E067F89}"
+	ProjectSection(SolutionItems) = preProject
+		.pipelines\buildout\configs.json = .pipelines\buildout\configs.json
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "arm", "arm", "{55F81D87-B6FE-4781-BFD4-431F5E59702C}"
-	ProjectSection(SolutionItems) = preProject
-		.pipelines\buildout\arm\configs.json = .pipelines\buildout\arm\configs.json
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "parameters", "parameters", "{E990D403-3EEC-40D3-9965-7F5F04D7769E}"
 	ProjectSection(SolutionItems) = preProject

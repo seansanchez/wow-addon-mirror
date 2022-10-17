@@ -35,7 +35,7 @@ public class ReleaseService : IReleaseService
         var missingReleases = sourceReleases.Where(x => !mirrorReleases.Any(y => y.Name.Equals(x.Name)) && !configuration.SkipReleases.Any(y => y.Equals(x.Name))).ToList();
 
         var names = missingReleases.Select(x => x.Name);
-        var namesJson = JsonSerializer.Serialize(names, AddonMirrorConstants.SerializerOptions);
+        var namesJson = JsonSerializer.Serialize(names, Constants.SerializerOptions);
 
         if (missingReleases.Any())
         {
@@ -165,7 +165,7 @@ public class ReleaseService : IReleaseService
 
                     using (var fileStream = new FileStream(wowUpReleaseFileName, FileMode.CreateNew))
                     {
-                        var content = new UTF8Encoding(true).GetBytes(JsonSerializer.Serialize(wowUpReleases, AddonMirrorConstants.SerializerOptions));
+                        var content = new UTF8Encoding(true).GetBytes(JsonSerializer.Serialize(wowUpReleases, Constants.SerializerOptions));
                         fileStream.Write(content, 0, content.Length);
                     }
 

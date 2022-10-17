@@ -34,11 +34,11 @@ public static class ConfigurationBuilderExtensions
     {
         source.ShouldNotBeNull(nameof(source));
 
-        var keyVaultUri = Environment.GetEnvironmentVariable(AddonMirrorConstants.EnvironmentSettings.KeyVaultUri);
+        var keyVaultUri = Environment.GetEnvironmentVariable(Constants.EnvironmentSettings.KeyVaultUri);
 
         if (!string.IsNullOrWhiteSpace(keyVaultUri))
         {
-            _ = bool.TryParse(Environment.GetEnvironmentVariable(AddonMirrorConstants.EnvironmentSettings.UseKeyVaultClientCertificateCredential), out var useKeyVaultClientCertificateCredential);
+            _ = bool.TryParse(Environment.GetEnvironmentVariable(Constants.EnvironmentSettings.UseKeyVaultClientCertificateCredential), out var useKeyVaultClientCertificateCredential);
 
             if (useKeyVaultClientCertificateCredential)
             {

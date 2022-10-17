@@ -17,7 +17,7 @@
     }
   },
   "variables": {
-    "aadDeveloperObjectId": "",
+    "aadDeveloperObjectId": "262686b3-ae74-4e82-86a6-62d1fce3909c",
     "resourceNameWithoutHyphens": "[replace(parameters('resourceName'), '-', '')]",
     "functionsResourceName": "[concat(parameters('resourceName'), '-fa')]"
   },
@@ -209,22 +209,6 @@
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2016-10-01",
       "name": "[concat(parameters('resourceName'), '/AzureWebJobsStorage')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', parameters('resourceName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('resourceNameWithoutHyphens'))]"
-      ],
-      "properties": {
-        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('resourceNameWithoutHyphens'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('resourceNameWithoutHyphens')),'2015-05-01-preview').key1)]",
-        "attributes": {
-          "enabled": true
-        }
-      }
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2016-10-01",
-      "name": "[concat(parameters('resourceName'), '/AzureStorageOptions--ConnectionString')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.KeyVault/vaults', parameters('resourceName'))]",
