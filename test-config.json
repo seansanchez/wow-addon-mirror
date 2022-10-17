@@ -2,7 +2,7 @@
   "sourceOwner": "NNoggie",
   "sourceRepositoryName": "MythicDungeonTools",
   "mirrorOwner": "seansanchez",
-  "mirrorRepositoryName": "test-repository",
+  "mirrorRepositoryName": "mdt-test",
   "variants": [
     {
       "name": "MythicDungeonTools",
@@ -11,6 +11,13 @@
     }
   ],
   "skipReleases": [
+    "v3.9.7.0",
+    "v4.0.0.5-Alpha",
+    "v4.0.0.4-Alpha",
+    "v4.0.0.3-Alpha",
+    "v4.0.0.2-Alpha",
+    "v4.0.0.1-Alpha",
+    "v3.9.6.9",
     "v3.9.6.8",
     "v3.9.6.7",
     "v3.9.6.6",

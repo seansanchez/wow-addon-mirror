@@ -1,0 +1,8 @@
+{
+  "ppe-scus": {
+    "AzureSubscriptionId": "",
+    "Environment": "ppe",
+    "LocationCode": "scus",
+    "DeveloperAccessPolicyEnabled": true
+  }
+}

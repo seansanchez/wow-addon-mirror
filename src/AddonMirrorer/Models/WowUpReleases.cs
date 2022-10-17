@@ -1,4 +1,4 @@
-﻿using AddonPackager.Models;
+﻿namespace AddonMirrorer.Models;
 
 public class WowUpReleases
 {

@@ -1,0 +1,52 @@
+parameters:
+  - name: configuration
+    type: string
+  - name: solutionPath
+    type: string
+
+steps:
+  - checkout: self
+    submodules: recursive
+
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core 6.0.x'
+    inputs:
+      packageType: 'sdk'
+      version: '6.0.x'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet restore'
+    inputs:
+      command: 'restore'
+      projects: '**/*.sln'
+      feedsToUse: 'config'
+      nugetConfigPath: '.nuget/nuget.config'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet build'
+    inputs:
+      command: 'build'
+      projects: '**/*.sln'
+      arguments: '--configuration ${{ parameters.configuration }} --no-incremental --no-restore'
+
+#  - task: DotNetCoreCLI@2
+#    displayName: 'dotnet test'
+#    inputs:
+#      command: 'test'
+#      projects: '**/*.Tests.csproj'
+#      arguments: '--filter "TestCategory=Unit" --no-restore --no-build --verbosity Detailed --collect "Code Coverage"'
+
+  - task: PowerShell@2
+    displayName: 'Buildout Artifacts'
+    inputs:
+      targetType: 'filePath'
+      filePath: '$(Build.SourcesDirectory)/.scripts/ExpandArtifacts.ps1'
+      arguments: >
+        -inputPath '$(Build.SourcesDirectory)/.pipelines/buildout'
+        -outputPath '$(Build.ArtifactStagingDirectory)/output/buildout'
+
+  #- task: ResharperCli@2
+  #  inputs:
+  #    solutionOrProjectPath: 'AddonMirrorer.sln'
+  #    failBuildLevelSelector: 'Error'
+  #    additionalArguments: '--no-build'

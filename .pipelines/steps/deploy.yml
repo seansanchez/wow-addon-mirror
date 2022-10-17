@@ -1,0 +1,47 @@
+parameters:
+  - name: armDeploymentSubscription
+    type: string
+  - name: armDeploymentResourceGroup
+    type: string
+  - name: armDeploymentLocation
+    type: string
+  - name: configurationName
+    type: string
+
+steps:
+  - checkout: self
+    submodules: recursive
+
+  - download: current
+    displayName: 'Download - Buildout Artifacts'
+    artifact: 'buildout'
+
+  - task: AzureResourceGroupDeployment@2
+    displayName: 'ARM Template Deployment'
+    inputs:
+      azureSubscription: '${{ parameters.armDeploymentSubscription }}'
+      resourceGroupName: '${{ parameters.armDeploymentResourceGroup }}'
+      location: '${{ parameters.armDeploymentLocation }}'
+      csmFile: '$(Pipeline.Workspace)/buildout/arm/templates/deployment-template.json'
+      csmParametersFile: '$(Pipeline.Workspace)/buildout/arm/parameters/${{ parameters.configurationName }}._deployment-parameters.json'
+      deploymentMode: 'Incremental'
+      deploymentOutputs: 'ArmOutputs'
+
+  - pwsh: $(Build.SourcesDirectory)/.scripts/ConvertArmOutput.ps1 -ArmOutputString '$(ArmOutputs)'
+    displayName: 'Copy ARM Outputs'
+
+  - pwsh: $(Build.SourcesDirectory)/.scripts/Sleep.ps1 -seconds 30
+    displayName: 'Sleep 30 seconds'
+
+  - download: current
+    displayName: 'Download - Function App'
+    artifact: 'drop'
+
+  - task: AzureFunctionApp@1
+    displayName: Azure Function App Deployment
+    inputs:
+      azureSubscription: '${{ parameters.armDeploymentSubscription }}'
+      appType: webAppLinux
+      appName: '$(functionsResourceName)'
+      resourceGroupName: '${{ parameters.armDeploymentResourceGroup }}'
+      package: $(Pipeline.Workspace)/drop/AddonMirrorer.Functions.zip

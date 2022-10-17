@@ -1,0 +1,72 @@
+parameters:
+  - name: configuration
+    type: string
+  - name: projects
+    type: object
+
+steps:
+  - checkout: self
+    submodules: recursive
+
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core 6.0.x'
+    inputs:
+      packageType: 'sdk'
+      version: 6.0.x
+
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet restore'
+    inputs:
+      command: restore
+      projects: '**/*.sln'
+      feedsToUse: 'config'
+      nugetConfigPath: '.nuget/nuget.config'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'dotnet build'
+    inputs:
+      projects: '**/*.sln'
+      arguments: '--configuration ${{ parameters.configuration }} --no-incremental --no-restore'
+
+#  - task: DotNetCoreCLI@2
+#    displayName: 'dotnet test'
+#    inputs:
+#      command: 'test'
+#      projects: '**/*.Tests.csproj'
+#      arguments: '--filter "TestCategory=Unit" --no-restore --no-build --verbosity Detailed --collect "Code Coverage"'
+
+  - ${{ each project in parameters.projects }}:
+
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet publish - ${{ project }}'
+      inputs:
+        command: publish
+        projects: '$(Build.SourcesDirectory)/src/${{ project }}/*.csproj'
+        arguments: '--configuration ${{ parameters.configuration }} --output output/${{ project }} --no-restore'
+        publishWebProjects: false
+        modifyOutputPath: false
+        zipAfterPublish: false
+  
+    - task: ArchiveFiles@2
+      displayName: "Archive files"
+      inputs:
+        rootFolderOrFile: output/${{ project }}
+        includeRootFolder: false
+        archiveFile: "$(System.ArtifactsDirectory)/drop/${{ project }}.zip"
+
+  - publish: '$(System.ArtifactsDirectory)/drop'
+    displayName: 'Publish - drop'
+    artifact: 'drop'
+
+  - task: PowerShell@2
+    displayName: 'Buildout Artifacts'
+    inputs:
+      targetType: 'filePath'
+      filePath: '$(Build.SourcesDirectory)/.scripts/ExpandArtifacts.ps1'
+      arguments: >
+        -inputPath '$(Build.SourcesDirectory)/.pipelines/buildout'
+        -outputPath '$(Build.ArtifactStagingDirectory)/output/buildout'
+
+  - publish: '$(Build.ArtifactStagingDirectory)/output/buildout'
+    displayName: 'Publish - Buildout Artifacts'
+    artifact: 'buildout'

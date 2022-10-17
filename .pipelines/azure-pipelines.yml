@@ -1,0 +1,57 @@
+trigger:
+ - 'main'
+ - 'develop'
+
+pr:
+ - 'main'
+ - 'develop'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: PR_Build
+  displayName: PR Build
+  condition: in(variables['Build.Reason'], 'PullRequest', 'Schedule')
+  jobs:
+    - job: PR_Build
+      displayName: PR Build
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: 'steps/pr.yml'
+          parameters:
+            configuration: Debug
+            solutionPath: AddonMirrorer.sln
+
+- stage: CI_Build
+  displayName: CI Build
+  condition: in(variables['Build.Reason'], 'Manual', 'IndividualCI', 'BatchedCI')
+  jobs:
+    - job: CI_Build
+      displayName: CI Build
+      steps:
+        - template: 'steps/ci.yml'
+          parameters:
+            configuration: 'Release'
+            projects: [ 'AddonMirrorer.Functions' ]
+
+- stage: Release_PPE_SCUS
+  displayName: '[PPE] SCUS'
+  dependsOn: CI_Build
+  condition: and(eq(dependencies.CI_Build.result, 'Succeeded'), ne(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+
+    - deployment: Release
+      displayName: 'Regional'
+      environment: addonmirrrorer-ppe-scus
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - template: 'steps/deploy.yml'
+                parameters:
+                  armDeploymentSubscription: 'VSE-150'
+                  armDeploymentResourceGroup: 'addonmirrorer-ppe-scus'
+                  armDeploymentLocation: 'SouthCentralUS'
+                  configurationName: 'ppe-scus'

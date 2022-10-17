@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "AddonMirrorer.Functions": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7192",
+      "launchBrowser": false
+    }
+  }
+}

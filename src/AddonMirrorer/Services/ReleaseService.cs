@@ -1,12 +1,12 @@
-﻿using AddonPackager.Models;
-using Octokit;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using AddonMirrorer.Models;
+using Octokit;
 using FileMode = System.IO.FileMode;
 
-namespace AddonPackager.Services;
+namespace AddonMirrorer.Services;
 
 public class ReleaseService : IReleaseService
 {
@@ -22,11 +22,14 @@ public class ReleaseService : IReleaseService
     }
 
     public async Task UpdateMirrorAsync(
-        AddonPackagerConfiguration configuration)
+        AddonMirrorerConfiguration configuration)
     {
         var sourceReleases = await _gitHubClient.Repository.Release.GetAll(configuration.SourceOwner, configuration.SourceRepositoryName).ConfigureAwait(false);
         var mirrorReleases = await _gitHubClient.Repository.Release.GetAll(configuration.MirrorOwner, configuration.MirrorRepositoryName).ConfigureAwait(false);
         var missingReleases = sourceReleases.Where(x => !mirrorReleases.Any(y => y.Name.Equals(x.Name)) && !configuration.SkipReleases.Any(y => y.Equals(x.Name))).ToList();
+
+        var names = missingReleases.Select(x => x.Name);
+        var namesJson = JsonSerializer.Serialize(names, AddonMirrorerConstants.SerializerOptions);
 
         if (missingReleases.Any())
         {
@@ -128,6 +131,7 @@ public class ReleaseService : IReleaseService
 
                         CopyDirectory(Directory.GetDirectories(sourceRootDirectory).First(), Path.Combine(variantSourcePath, variant.Name));
 
+                        // TODO: Map commonly used hosted libraries OR include in source + check the libraries config in addon to ensure all are updated
                         CopyDirectory("../../../../../libs-src", Path.Combine(variantSourcePath, variant.Name, "libs"));
 
                         ZipFile.CreateFromDirectory(variantSourcePath, variantZipballFileName);
@@ -153,7 +157,7 @@ public class ReleaseService : IReleaseService
 
                     using (var fileStream = new FileStream(wowUpReleaseFileName, FileMode.CreateNew))
                     {
-                        var content = new UTF8Encoding(true).GetBytes(JsonSerializer.Serialize(wowUpReleases, AddonPackagerConstants.SerializerOptions));
+                        var content = new UTF8Encoding(true).GetBytes(JsonSerializer.Serialize(wowUpReleases, AddonMirrorerConstants.SerializerOptions));
                         fileStream.Write(content, 0, content.Length);
                     }
 
@@ -164,6 +168,8 @@ public class ReleaseService : IReleaseService
                         Draft = false
                     });
                 }
+
+                Directory.Delete(releaseRootDirectory, true);
             }
         }
     }
