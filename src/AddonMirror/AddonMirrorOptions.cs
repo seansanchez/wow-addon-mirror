@@ -3,7 +3,7 @@ using AddonMirror.Models;
 
 namespace AddonMirror;
 
-public class AddonMirrorConfiguration
+public class AddonMirrorOptions
 {
     public string SourceOwner { get; set; }
 

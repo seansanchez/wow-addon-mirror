@@ -4,9 +4,10 @@
       "commandName": "Project",
       "commandLineArgs": "--port 7192",
       "launchBrowser": false,
+      "use64Bit": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "KeyVaultUri": "https://addonmirror-ppe-scus.vault.azure.net"
+        "KeyVaultUri": "https://addonmirror-ppe-scus.vault.azure.net/"
       }
     }
   }

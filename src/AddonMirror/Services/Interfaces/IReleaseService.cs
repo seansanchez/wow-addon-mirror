@@ -4,5 +4,5 @@ namespace AddonMirror.Services;
 
 public interface IReleaseService
 {
-    Task UpdateMirrorAsync(AddonMirrorConfiguration configuration);
+    Task UpdateMirrorAsync(AddonMirrorOptions configuration);
 }

@@ -1,6 +1,9 @@
-﻿using AddonMirror.Extensions;
+﻿using System;
+using AddonMirror.Extensions;
 using AddonMirror.Functions;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 #pragma warning disable SA1516 // Elements should be separated by blank line
 [assembly: FunctionsStartup(typeof(Startup))]
@@ -13,6 +16,13 @@ public class Startup : FunctionsStartup
     /// <inheritdoc/>
     public override void Configure(IFunctionsHostBuilder builder)
     {
+        builder.Services
+            .AddOptions<AddonMirrorOptions>()
+            .Configure<IConfiguration>((settings, configuration) =>
+            {
+                configuration.GetSection(nameof(AddonMirrorOptions)).Bind(settings);
+            })
+            .ValidateDataAnnotations();
     }
 
     /// <inheritdoc/>

@@ -2,10 +2,24 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <Platforms>x64</Platforms>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+    <OutputPath>bin\$(Configuration)</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
+    <StartDevelopmentStorage>false</StartDevelopmentStorage>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.*.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -14,10 +28,6 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
     <AdditionalFiles Include="..\..\stylecop.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\AddonMirror\AddonMirror.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +41,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AddonMirror\AddonMirror.csproj" />
   </ItemGroup>
 
 </Project>

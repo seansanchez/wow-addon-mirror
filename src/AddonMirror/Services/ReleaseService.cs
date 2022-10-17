@@ -28,7 +28,7 @@ public class ReleaseService : IReleaseService
     }
 
     public async Task UpdateMirrorAsync(
-        AddonMirrorConfiguration configuration)
+        AddonMirrorOptions configuration)
     {
         var sourceReleases = await _gitHubClient.Repository.Release.GetAll(configuration.SourceOwner, configuration.SourceRepositoryName).ConfigureAwait(false);
         var mirrorReleases = await _gitHubClient.Repository.Release.GetAll(configuration.MirrorOwner, configuration.MirrorRepositoryName).ConfigureAwait(false);

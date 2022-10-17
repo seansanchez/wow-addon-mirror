@@ -4,9 +4,9 @@ using Microsoft.Extensions.Logging;
 
 namespace AddonMirror.Functions;
 
-public class Function
+public class TimerFunctions
 {
-    [FunctionName("Function")]
+    [FunctionName("TimerFunctions")]
     public void Run([TimerTrigger(Constants.CronTriggers.Every1Minute)] TimerInfo myTimer, ILogger log)
     {
         log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");

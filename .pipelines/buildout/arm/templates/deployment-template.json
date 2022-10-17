@@ -126,7 +126,9 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('resourceName'))]",
         "httpsOnly": true,
         "use32BitWorkerProcess": false,
-        "alwaysOn": true
+        "siteConfig": {
+          "alwaysOn": true
+        }
       }
     },
     {
