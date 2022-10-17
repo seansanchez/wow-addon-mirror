@@ -1,7 +1,11 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet"
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+
+    // Do NOT remove or edit
+    // this will be overriden by json configuration provider (appsettings.json / appsettings.Development.json)
+    // or by the key vault configuration provider
+    "AzureWebJobsStorage": ""
   }
 }

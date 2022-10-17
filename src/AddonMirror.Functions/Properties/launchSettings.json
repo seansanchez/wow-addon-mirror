@@ -3,7 +3,11 @@
     "AddonMirrorer.Functions": {
       "commandName": "Project",
       "commandLineArgs": "--port 7192",
-      "launchBrowser": false
+      "launchBrowser": false,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "KeyVaultUri": "https://addonmirror-ppe-scus.vault.azure.net"
+      }
     }
   }
 }
