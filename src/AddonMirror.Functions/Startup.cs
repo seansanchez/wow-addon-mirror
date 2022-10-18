@@ -1,9 +1,12 @@
-﻿using System;
-using AddonMirror.Extensions;
+﻿using AddonMirror.Extensions;
 using AddonMirror.Functions;
+using AddonMirror.Repositories;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Octokit;
 
 #pragma warning disable SA1516 // Elements should be separated by blank line
 [assembly: FunctionsStartup(typeof(Startup))]
@@ -23,6 +26,19 @@ public class Startup : FunctionsStartup
                 configuration.GetSection(nameof(AddonMirrorOptions)).Bind(settings);
             })
             .ValidateDataAnnotations();
+
+        builder.Services.AddHttpClient();
+        builder.Services.AddSingleton<IMemoryCache, MemoryCache>();
+        builder.Services.AddSingleton<IAzureTableStorageRepository, AzureTableStorageRepository>();
+        builder.Services.AddSingleton<IGitHubClient>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<AddonMirrorOptions>>();
+
+            var gitHubClient = new GitHubClient(new ProductHeaderValue("Addon Mirror"));
+            gitHubClient.Credentials = new Credentials(options.Value.GitHubToken);
+
+            return gitHubClient;
+        });
     }
 
     /// <inheritdoc/>

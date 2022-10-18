@@ -1,19 +1,16 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using AddonMirror.Models;
 
 namespace AddonMirror;
 
 public class AddonMirrorOptions
 {
-    public string SourceOwner { get; set; }
+    [Required]
+    public string AzureStorageConnectionString { get; set; }
 
-    public string SourceRepositoryName { get; set; }
+    [Required]
+    public string GitHubToken { get; set; }
 
-    public string MirrorOwner { get; set; }
-
-    public string MirrorRepositoryName { get; set; }
-
-    public IEnumerable<Variant> Variants { get; set; }
-
-    public IEnumerable<string> SkipReleases { get; set; } = new List<string>();
+    public IEnumerable<AddonSettings> AddonsSettings { get; set; } = new List<AddonSettings>();
 }

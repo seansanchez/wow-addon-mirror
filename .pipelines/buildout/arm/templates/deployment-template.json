@@ -222,6 +222,22 @@
           "enabled": true
         }
       }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(parameters('resourceName'), '/AddonMirrorOptions--AzureStorageConnectionString')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('resourceName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('resourceNameWithoutHyphens'))]"
+      ],
+      "properties": {
+        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('resourceNameWithoutHyphens'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('resourceNameWithoutHyphens')),'2015-05-01-preview').key1)]",
+        "attributes": {
+          "enabled": true
+        }
+      }
     }
   ],
   "outputs": {
