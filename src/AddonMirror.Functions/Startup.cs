@@ -1,6 +1,7 @@
 ﻿using AddonMirror.Extensions;
 using AddonMirror.Functions;
 using AddonMirror.Repositories;
+using AddonMirror.Services;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -34,11 +35,12 @@ public class Startup : FunctionsStartup
         {
             var options = sp.GetRequiredService<IOptions<AddonMirrorOptions>>();
 
-            var gitHubClient = new GitHubClient(new ProductHeaderValue("Addon Mirror"));
+            var gitHubClient = new GitHubClient(new ProductHeaderValue("AddonMirror"));
             gitHubClient.Credentials = new Credentials(options.Value.GitHubToken);
 
             return gitHubClient;
         });
+        builder.Services.AddSingleton<IReleaseService, ReleaseService>();
     }
 
     /// <inheritdoc/>

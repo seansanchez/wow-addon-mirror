@@ -12,5 +12,5 @@ public class AddonMirrorOptions
     [Required]
     public string GitHubToken { get; set; }
 
-    public IEnumerable<AddonSettings> AddonsSettings { get; set; } = new List<AddonSettings>();
+    public IEnumerable<Addon> Addons { get; set; }
 }

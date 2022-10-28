@@ -2,7 +2,7 @@
 
 namespace AddonMirror.Models;
 
-public class AddonSettings
+public class Addon
 {
     public string SourceOwner { get; set; }
 
@@ -12,7 +12,9 @@ public class AddonSettings
 
     public string MirrorRepositoryName { get; set; }
 
+    public string Name { get; set; }
+
     public IEnumerable<Variant> Variants { get; set; }
 
-    public IEnumerable<string> SkipReleases { get; set; } = new List<string>();
+    public IEnumerable<string> SkipReleases { get; set; }
 }
