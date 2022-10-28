@@ -8,16 +8,9 @@ namespace AddonMirror.Services;
 public interface IReleaseService
 {
     Task<IEnumerable<Release>> GetUnmirroredReleasesAsync(
-        string sourceOwner,
-        string sourceRepositoryName,
-        string mirrorOwner,
-        string mirrorRepositoryName,
-        IEnumerable<string> releasesToSkip);
+        Addon addon);
 
     Task CreateMirrorCommitAsync(
-        Release unmirroredRelease,
-        string mirrorOwner,
-        string mirrorRepositoryName,
-        string addonName,
-        IEnumerable<Variant> variants);
+        Addon addon,
+        Release unmirroredRelease);
 }

@@ -28,20 +28,13 @@ public class TimerFunctions
         foreach (var addon in _options.Value.Addons)
         {
             var unmirroredReleases = await _releaseService.GetUnmirroredReleasesAsync(
-                addon.SourceOwner,
-                addon.SourceRepositoryName,
-                addon.MirrorOwner,
-                addon.MirrorRepositoryName,
-                addon.SkipReleases);
+                addon);
 
             foreach (var unmirroredRelease in unmirroredReleases)
             {
                 await _releaseService.CreateMirrorCommitAsync(
-                    unmirroredRelease,
-                    addon.MirrorOwner,
-                    addon.MirrorRepositoryName,
-                    addon.Name,
-                    addon.Variants);
+                    addon,
+                    unmirroredRelease);
             }
         }
     }

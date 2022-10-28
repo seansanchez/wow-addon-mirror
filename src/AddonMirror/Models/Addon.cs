@@ -14,6 +14,8 @@ public class Addon
 
     public string Name { get; set; }
 
+    public IList<string> SourceExclude { get; set; }
+
     public IEnumerable<Variant> Variants { get; set; }
 
     public IEnumerable<string> SkipReleases { get; set; }

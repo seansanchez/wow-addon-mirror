@@ -37,41 +37,25 @@ public class ReleaseService : IReleaseService
     }
 
     public async Task<IEnumerable<Release>> GetUnmirroredReleasesAsync(
-        string sourceOwner,
-        string sourceRepositoryName,
-        string mirrorOwner,
-        string mirrorRepositoryName,
-        IEnumerable<string> releasesToSkip)
+        Addon addon)
     {
-        sourceOwner.ShouldNotBeNullOrWhiteSpace(nameof(sourceOwner));
-        sourceRepositoryName.ShouldNotBeNullOrWhiteSpace(nameof(sourceRepositoryName));
-        mirrorOwner.ShouldNotBeNullOrWhiteSpace(nameof(mirrorOwner));
-        mirrorRepositoryName.ShouldNotBeNullOrWhiteSpace(nameof(mirrorRepositoryName));
+        addon.ShouldNotBeNull(nameof(addon));
 
-        var sourceReleases = await _gitHubClient.Repository.Release.GetAll(sourceOwner, sourceRepositoryName).ConfigureAwait(false);
-        var mirrorReleases = await _gitHubClient.Repository.Release.GetAll(mirrorOwner, mirrorRepositoryName).ConfigureAwait(false);
+        var sourceReleases = await _gitHubClient.Repository.Release.GetAll(addon.SourceOwner, addon.SourceRepositoryName).ConfigureAwait(false);
+        var mirrorReleases = await _gitHubClient.Repository.Release.GetAll(addon.MirrorOwner, addon.MirrorRepositoryName).ConfigureAwait(false);
 
-        return sourceReleases.Where(x => !x.Prerelease && !mirrorReleases.Any(y => y.Name.Equals(x.Name)) && !releasesToSkip.Any(y => y.Equals(x.Name)));
+        return sourceReleases.Where(x => !x.Prerelease && !mirrorReleases.Any(y => y.Name.Equals(x.Name)) && !addon.SkipReleases.Any(y => y.Equals(x.Name)));
     }
 
     public async Task CreateMirrorCommitAsync(
-        Release unmirroredRelease,
-        string mirrorOwner,
-        string mirrorRepositoryName,
-        string addonName,
-        IEnumerable<Variant> variants)
+        Addon addon,
+        Release unmirroredRelease)
     {
+        addon.ShouldNotBeNull(nameof(addon));
         unmirroredRelease.ShouldNotBeNull(nameof(unmirroredRelease));
-        mirrorOwner.ShouldNotBeNullOrWhiteSpace(nameof(mirrorOwner));
-        mirrorRepositoryName.ShouldNotBeNullOrWhiteSpace(nameof(mirrorRepositoryName));
-        addonName.ShouldNotBeNullOrWhiteSpace(nameof(addonName));
-        variants.ShouldNotBeNull(nameof(variants));
-
-        var prCommentsSb = new StringBuilder();
 
         // TODO: Check is there's already a pending PR.
-
-        var discriminator = Guid.NewGuid().ToString();
+        var discriminator = $"{Guid.NewGuid()}";
         var workDirectory = Path.Combine("_work", discriminator);
         Directory.CreateDirectory(workDirectory);
 
@@ -104,6 +88,16 @@ public class ReleaseService : IReleaseService
 
             var addonSourceDirectory = Directory.GetDirectories(sourceDirectory).First();
 
+            foreach (var excludeFromSource in addon.SourceExclude)
+            {
+                var p = Path.Combine(addonSourceDirectory, excludeFromSource);
+
+                if (Directory.Exists(p))
+                {
+                    Directory.Delete(p, true);
+                }
+            }
+
             // TODO: Enable configuration of pkg metadata file here
             var packageMetaFilePath = Path.Combine(addonSourceDirectory, "pkgmeta.yaml");
 
@@ -123,27 +117,25 @@ public class ReleaseService : IReleaseService
                     foreach (var item in packageMetadata.Externals)
                     {
                         var libraryDirectory = Path.Combine(addonSourceDirectory, item.Key);
-
-                        if (!Directory.Exists(libraryDirectory))
-                        {
-                            prCommentsSb.AppendLine($"Missing library {item.Value} at {libraryDirectory}");
-                        }
                     }
                 }
             }
 
-            var releaseRepoMainBranch = await _gitHubClient.Repository.Branch.Get(mirrorOwner, mirrorRepositoryName, "main");
-            await _gitHubClient.Git.Reference.Create(mirrorOwner, mirrorRepositoryName, new NewReference($"refs/heads/{discriminator}", releaseRepoMainBranch.Commit.Sha));
-            var branch = await _gitHubClient.Repository.Branch.Get(mirrorOwner, mirrorRepositoryName, discriminator);
+            var mirrorMainBranch = await _gitHubClient.Repository.Branch.Get(addon.MirrorOwner, addon.MirrorRepositoryName, "main");
+            var mirrorDevelopmentBranch = await _gitHubClient.Git.Reference.Create(addon.MirrorOwner, addon.MirrorRepositoryName, new NewReference($"refs/heads/{discriminator}", mirrorMainBranch.Commit.Sha));
 
-            await ProcessFilesInPathAsync(mirrorOwner: mirrorOwner, mirrorRepositoryName: mirrorRepositoryName, discriminator: discriminator, sourceItemDirectory: addonSourceDirectory, treeRoot: $"source/{addonName}", treeSha: branch.Commit.Sha, commitSha: branch.Commit.Sha);
+            await ProcessFilesInPathAsync(mirrorOwner: addon.MirrorOwner, mirrorRepositoryName: addon.MirrorRepositoryName, mirrorDevelopmentBranchRef: mirrorDevelopmentBranch.Ref, sourceItemDirectory: addonSourceDirectory, treeRoot: $"source/{addon.Name}", treeSha: mirrorDevelopmentBranch.Object.Sha, commitSha: mirrorDevelopmentBranch.Object.Sha);
+
+            var mirrorReleaseBranch = await _gitHubClient.Git.Reference.Create(addon.MirrorOwner, addon.MirrorRepositoryName, new NewReference($"refs/heads/releases/{unmirroredRelease.TagName}", mirrorMainBranch.Commit.Sha));
+
+            await _gitHubClient.PullRequest.Create(addon.MirrorOwner, addon.MirrorRepositoryName, new NewPullRequest($"Automated Release: {addon.Name} {unmirroredRelease.Name}", mirrorDevelopmentBranch.Ref, mirrorReleaseBranch.Ref));
         }
     }
 
     private async Task<Commit?> ProcessFilesInPathAsync(
         string mirrorOwner,
         string mirrorRepositoryName,
-        string discriminator,
+        string mirrorDevelopmentBranchRef,
         string sourceItemDirectory,
         string treeRoot,
         string? treeSha = null,
@@ -188,11 +180,11 @@ public class ReleaseService : IReleaseService
 
                 var directoryTreeResponse = await _gitHubClient.Git.Tree.Create(mirrorOwner, mirrorRepositoryName, directoryTree);
 
-                commit = await _gitHubClient.Git.Commit.Create(mirrorOwner, mirrorRepositoryName, new NewCommit("a", directoryTreeResponse.Sha, commitSha));
+                commit = await _gitHubClient.Git.Commit.Create(mirrorOwner, mirrorRepositoryName, new NewCommit($"Automated Commit for Content at: {treeRoot}", directoryTreeResponse.Sha, commitSha));
 
                 if (commit != null)
                 {
-                    var update = await _gitHubClient.Git.Reference.Update(mirrorOwner, mirrorRepositoryName, $"refs/heads/{discriminator}", new ReferenceUpdate(commit.Sha));
+                    var update = await _gitHubClient.Git.Reference.Update(mirrorOwner, mirrorRepositoryName, mirrorDevelopmentBranchRef, new ReferenceUpdate(commit.Sha));
                     commitSha = update.Object.Sha;
                 }
             }
@@ -202,7 +194,7 @@ public class ReleaseService : IReleaseService
         {
             var updatedTreeRoot = $"{treeRoot}/{GetRelativePath(Path.GetFullPath(nestedDirectory), Path.GetFullPath(sourceItemDirectory))}";
 
-            commit = await ProcessFilesInPathAsync(mirrorOwner: mirrorOwner, mirrorRepositoryName: mirrorRepositoryName, discriminator: discriminator, sourceItemDirectory: nestedDirectory, treeRoot: updatedTreeRoot, treeSha: null, commitSha: commitSha);
+            commit = await ProcessFilesInPathAsync(mirrorOwner: mirrorOwner, mirrorRepositoryName: mirrorRepositoryName, mirrorDevelopmentBranchRef, sourceItemDirectory: nestedDirectory, treeRoot: updatedTreeRoot, treeSha: null, commitSha: commitSha);
 
             if (commit != null)
             {
